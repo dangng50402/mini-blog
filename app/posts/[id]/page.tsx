@@ -5,6 +5,7 @@ import { getPost, getComments, getUser } from "@/app/lib/api";
 import type { Comment } from "@/app/lib/types";
 import LikeButton from "@/app/components/LikeButton";
 import BackButton from "@/app/components/BackButton";
+import Image from "next/image";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -46,24 +47,43 @@ async function PostBody({ id }: { id: string }) {
   const user = await getUser(post.userId);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-8 mb-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-          {user.name.charAt(0)}
-        </div>
-        <div>
-          <p className="font-medium text-gray-900">{user.name}</p>
-          <p className="text-xs text-gray-400">@{user.username}</p>
-        </div>
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
+      {/* Hero image — priority vì đây là ảnh LCP, above-the-fold */}
+      <div className="relative h-56 w-full bg-gray-100">
+        <Image
+          src={`https://picsum.photos/seed/${post.id}/1200/400`}
+          alt={post.title}
+          fill
+          sizes="(max-width: 768px) 100vw, 800px"
+          className="object-cover"
+          priority  // ← above-the-fold, ảnh LCP
+        />
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 capitalize mb-4">
-        {post.title}
-      </h1>
-      <p className="text-gray-600 leading-relaxed">{post.body}</p>
+      <div className="p-8">
+        <div className="flex items-center gap-3 mb-4">
+          {/* Avatar — width/height cố định, biết trước kích thước */}
+          <Image
+            src={`https://i.pravatar.cc/40?u=${user.id}`}
+            alt={user.name}
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
+          <div>
+            <p className="font-medium text-gray-900">{user.name}</p>
+            <p className="text-xs text-gray-400">@{user.username}</p>
+          </div>
+        </div>
 
-      <div className="mt-6 pt-4 border-t border-gray-100 flex items-center gap-4">
-        <LikeButton />
+        <h1 className="text-2xl font-bold text-gray-900 capitalize mb-4">
+          {post.title}
+        </h1>
+        <p className="text-gray-600 leading-relaxed">{post.body}</p>
+
+        <div className="mt-6 pt-4 border-t border-gray-100 flex items-center gap-4">
+          <LikeButton />
+        </div>
       </div>
     </div>
   );
